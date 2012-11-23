@@ -1,0 +1,32 @@
+// History.txt
+
+See http://code.google.com/p/earthsurfer for more information.
+
+First Release. Version 0.5.0
+
+-- David Phillip Oster Jan 9, 2009
+
+Feb 25, 2009
+- integrate T.U's surfer figure with my work.
+
+March 22, 2009
+- integrate T.U's work with my work.
+
+May 6, 2009
+- T.U.'s http://www.corp.google.com/~tulrich/surfer/
+  - grabbed T.U.'s latest. merged, so we have buildings now.
+- my attempt to get the program to run reasonably when bluetooth was off caused it to not connect at all when bluetooth is on. Fixed in :0.8.0
+
+
+TODO:
+
+- T.U's surfer figure is
+  1) Wooden. It is a shame we can't animate him
+  2) Big: causes word balloons to come not from his head.
+- Add "Jump" to the motion model.
+  - a jump: given an average weight over the last second, a jump is a reduction to below 10% for a time, a weight that is > min(1*5*average, max for device) for a short period of time, followed by revert to average.
+  - (check with my DarwiinRemote).
+- Add battery level indicator.
+  - create "control"
+  - wire it up.
+- Check the DarwiinRemote site: are their Balance Board drivers better than mine?

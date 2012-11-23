@@ -1,0 +1,8 @@
+=News - last update Jan 14, 2009 =
+
+==Version 0.6.0==
+Version 0.6.0 released Jan 14, 2009 - 
+
+If the Google Earth Browser Plugin is not installed, this version makes a feeble attempt to guide the user through fetching it.
+
+This version was intended to be compatible with PowerPC and with OS X 10.4.11, but I'm informed I still have more work to do. Check back next week for a new version.

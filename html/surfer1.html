@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Earth Surfer</title>
+  <link rel=stylesheet href='surfer.css' type='text/css' />
+  <!-- *** Replace the key below with your own API key, available at http://code.google.com/apis/maps/signup.html *** -->
+  <script type="text/javascript"
+    src="http://www.google.com/jsapi?key=ABQIAAAAMsGvqUPq6q7maN2CXfk4NRSUaFALdMC81kJVitIN8S4DKFdfNxRV5-QV-izMTxAupFzuh2WYp4MpDw"></script>
+  <script type="text/javascript" src="math3d.js"></script>
+  <script type="text/javascript">
+google.load("earth", "1", {"other_params": "sensor=false" });
+google.load("maps", "2.99", {"other_params": "sensor=false" });
+
+var ge = null;
+var geocoder;
+var truck;
+
+function el(e) { return document.getElementById(e); }
+
+function Sample(description, url) {
+  this.description = description;
+  this.url = url;
+  return this;
+}
+
+var samples = [];
+
+function init() {
+  geocoder = new GClientGeocoder();
+
+  init3D();
+}
+
+function initCallback(object) {
+  ge = object;
+  ge.getWindow().setVisibility(true);
+  ge.getLayerRoot().enableLayerById(ge.LAYER_BUILDINGS, true);
+  ge.getOptions().setFlyToSpeed(ge.SPEED_TELEPORT);
+
+}
+
+function failureCallback(err) {
+  /***
+   * This function will be called if plugin fails to load, in case
+   * you need to handle that error condition.
+   ***/
+}
+
+function init3D() {
+  google.earth.createInstance("map3d", initCallback, failureCallback);
+}
+
+function submitLocation() {
+  doGeocode(el('address').value);
+}
+
+function doGeocode(address) {
+  geocoder.getLatLng(address, function(point) {
+    if (point) {
+      if (ge != null && truck != null) {
+        truck.teleportTo(point.y, point.x);
+      }
+    }
+  });
+}
+
+  </script>
+</head>
+<body onload='init()' onunload="GUnload()" onKeyDown="return keyDown(event);" onKeyUp="return keyUp(event);">
+<div id='map3d_container' ><div id='map3d'></div></div>
+</body>
+</html>

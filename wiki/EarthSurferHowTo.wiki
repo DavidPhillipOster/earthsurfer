@@ -1,0 +1,69 @@
+Earth Surfer - How Tos
+
+= How To Install =
+
+  * *Download [http://earthsurfer.googlecode.com/svn/downloads/EarthSurfer.zip EarthSurfer]*
+  * Double-click on  !EarthSurfer.zip to unzip to get the Earth Surfer application program, which has an icon like this: [http://earthsurfer.googlecode.com/svn/html/images/earthsurfer.png]  
+  * Run the program.
+
+
+= How To Play Earth Surfer  =
+
+== Google Earth Browser Plugin ==
+
+If you don't have *Google Earth Browser Plugin* then Earth Surfer will prompt you to click a link and download it. Install the plug in, then re-open Earth Surfer.
+
+== Connecting the Balance Beam ==
+
+  * Open Earth Surfer (start it running.)
+  * Turn your Balance Beam over on its back so its little feet are pointed up. Open its battery box. Press the red button, holding it for about a half-second. If Earth Surfer doesn't say "Connected", then press the read button again. My experience is that it connects the second time.
+
+== Controlling the Milk Truck ==
+
+  * Put the Balance Beam like a surfboard a few feet from your Mac. (You'll need some room to lean.) Put it sideways: so the short end is toward the Mac, and power button (with the blue LED) is toward the right. Stand on the Balance Beam.
+
+  *  As you put your weight on the front of the Balance Beam, the Earth Surfer truck will move forward. The little on-screen picture of the Balance Beam, in the lower left of the Earth Surfer screen shows you what Earth Surfer can see of the Balance Beam: It colors the Balance Beam in green as you lean left and right.
+
+  * Lean left for left, right for right. But: as in a car, you can't turn if you aren't moving.
+
+  * Lean forward for forward, back for back. But: as in a car, you can't accelerate or decelerate if your tires aren't touching the ground.
+
+  * You go up and down hills, but right through buildings.
+
+== The Rest of the World ==
+
+  * A few places are programmed into Earth Surfer, and you can cycle from one to the next by tapping the power button (with the blue LED) on the right edge of the Balance Beam.
+
+  * You can click the "Search" button and use your keyboard to type in other places. There is a popup menu on the Search text-edit box of places you've previously typed in.
+
+== Earth Surfer’s Menu Bar Menus ==
+
+  ⌘0 - swaps you between full-screen and in-a-window mode. (That is, _command-zero_.)
+
+  ⌘T - Teleports you from place to place.
+
+  ⌘Q - Quits.
+
+Or, like in Monster Milktruck, you can just drive around using the arrow keys.
+
+
+= How To Build Earth Surfer  =
+
+You can [http://code.google.com/p/earthsurfer/source/checkout fetch the source code] for Earth Surfer from this website.
+
+Open the !EarthSurfer.xcodeproj with Xcode and build it for OS X 10.4 or OS X 10.5, PowerPC or Intel.
+
+
+= How To Modify Earth Surfer  =
+
+Since Earth Surfer is open source, once you've got the source you can modify. Here are some starting places.
+
+The basic structure of the Interface Builder nib is a !Webview, with !AppDelegate as its delegate. !AppDelegate is also the delegate for !WiiRemoteDiscovery (which polls the local Bluetooth for devices) and !WiiRemote, which decodes Bluetooth packets from the Balance Beam and ships them to its delegate.
+
+Since Earth Browser Plug-in is doing some slightly non-standard things with OpenGL in the WebView, the normal techniques of moving from a normal window a fullscreen window don't work. That's why Earth Surfer plays its shenanigans in !FullScreenableWindowController to get the window to resize to full screen with no menu bar, then back down when the user hits ⌘0.
+
+= How You Can Help  =
+
+I'd like to add some features and refinements to Earth Surfer. Here's how you can help.
+
+[http://code.google.com/p/earthsurfer/issues/list Issues] is the to-do list of features and bugs that I'd like to do with Earth Surfer. Please feel free to email me source code changes. If I don't change Earth Surfer the way you like, feel free to take the source code and do what YOU want with it, within the constraints of what you can legally do under the Google Browser Plug-in license agreement. 

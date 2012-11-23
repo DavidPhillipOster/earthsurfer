@@ -1,0 +1,448 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 45;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1362292D0F87EDD700AD92CF /* CursorShielder.m in Sources */ = {isa = PBXBuildFile; fileRef = 1362292C0F87EDD700AD92CF /* CursorShielder.m */; };
+		1392B1D80EF03F2700A240B8 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1392B1D60EF03F2700A240B8 /* InfoPlist.strings */; };
+		1392B1DB0EF03F4500A240B8 /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1392B1D90EF03F4500A240B8 /* Main.xib */; };
+		1392B1EC0EF03F7A00A240B8 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1392B1EA0EF03F7A00A240B8 /* Localizable.strings */; };
+		1392B1F80EF040C000A240B8 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1392B1F70EF040C000A240B8 /* WebKit.framework */; };
+		139F86F80F17E5EA00C94BF3 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 139F86F60F17E5EA00C94BF3 /* Credits.rtf */; };
+		13E52AA30F0EF2510086AEC4 /* SurfboardDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 13E52AA20F0EF2510086AEC4 /* SurfboardDecoder.m */; };
+		13E5DBF00EFB245900C6D422 /* surfer1.js in Resources */ = {isa = PBXBuildFile; fileRef = 13E5DBEF0EFB245900C6D422 /* surfer1.js */; };
+		13E699F80F0AA3FD00CB72B1 /* NSImage+Rotate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13E699F70F0AA3FD00CB72B1 /* NSImage+Rotate.m */; };
+		13E699FE0F0AA48500CB72B1 /* NSString+Replacing.m in Sources */ = {isa = PBXBuildFile; fileRef = 13E699FD0F0AA48400CB72B1 /* NSString+Replacing.m */; };
+		13EF54A40F059F250050DEBC /* FullScreenableWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 13EF54A20F059F250050DEBC /* FullScreenableWindowController.m */; };
+		13EF54A80F059F8A0050DEBC /* FullScreenable.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13EF54A60F059F8A0050DEBC /* FullScreenable.xib */; };
+		13EF54AF0F05A1570050DEBC /* ContainerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 13EF54AE0F05A1570050DEBC /* ContainerView.m */; };
+		13EF54B70F05A2EB0050DEBC /* ContainerWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 13EF54B60F05A2EB0050DEBC /* ContainerWindowController.m */; };
+		634B1AFC0EEE5AA20014B346 /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 634B1AFB0EEE5AA20014B346 /* Icon.icns */; };
+		63560A200EE11ED0004C1B6D /* BalanceBeamView.m in Sources */ = {isa = PBXBuildFile; fileRef = 63560A1E0EE11ED0004C1B6D /* BalanceBeamView.m */; };
+		63560A230EE11EDE004C1B6D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 63560A220EE11EDE004C1B6D /* AppDelegate.m */; };
+		63560A4A0EE12216004C1B6D /* bb100.png in Resources */ = {isa = PBXBuildFile; fileRef = 63560A470EE12216004C1B6D /* bb100.png */; };
+		63560A4B0EE12216004C1B6D /* bb30.png in Resources */ = {isa = PBXBuildFile; fileRef = 63560A480EE12216004C1B6D /* bb30.png */; };
+		63560A4C0EE12216004C1B6D /* bb0.png in Resources */ = {isa = PBXBuildFile; fileRef = 63560A490EE12216004C1B6D /* bb0.png */; };
+		639A5CE20EE13C8000850ED8 /* WiiRemote.m in Sources */ = {isa = PBXBuildFile; fileRef = 639A5CDE0EE13C8000850ED8 /* WiiRemote.m */; };
+		639A5CE30EE13C8000850ED8 /* WiiRemoteDiscovery.m in Sources */ = {isa = PBXBuildFile; fileRef = 639A5CE00EE13C8000850ED8 /* WiiRemoteDiscovery.m */; };
+		639A5CEC0EE13C9300850ED8 /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 639A5CEB0EE13C9300850ED8 /* IOBluetooth.framework */; };
+		63BBB3900EE1CAF800B1075B /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63BBB38F0EE1CAF800B1075B /* Carbon.framework */; };
+		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
+		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		13535ABC0EFB061F004A97D5 /* Mii.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mii.h; sourceTree = "<group>"; };
+		1362292B0F87EDD700AD92CF /* CursorShielder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CursorShielder.h; sourceTree = "<group>"; };
+		1362292C0F87EDD700AD92CF /* CursorShielder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CursorShielder.m; sourceTree = "<group>"; };
+		1392B1D70EF03F2700A240B8 /* InfoPlist.strings */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		1392B1DA0EF03F4500A240B8 /* Main.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Main.xib; path = English.lproj/Main.xib; sourceTree = "<group>"; };
+		1392B1EB0EF03F7A00A240B8 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = Localizable.strings; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
+		1392B1F70EF040C000A240B8 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
+		139F86F70F17E5EA00C94BF3 /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = English.lproj/Credits.rtf; sourceTree = "<group>"; };
+		13D9FEAA0F16C883007D5B86 /* Documentation */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Documentation; sourceTree = "<group>"; };
+		13E52AA10F0EF2510086AEC4 /* SurfboardDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SurfboardDecoder.h; sourceTree = "<group>"; };
+		13E52AA20F0EF2510086AEC4 /* SurfboardDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SurfboardDecoder.m; sourceTree = "<group>"; };
+		13E5DBEF0EFB245900C6D422 /* surfer1.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; name = surfer1.js; path = Resources/surfer1.js; sourceTree = "<group>"; };
+		13E699F60F0AA3FD00CB72B1 /* NSImage+Rotate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSImage+Rotate.h"; sourceTree = "<group>"; };
+		13E699F70F0AA3FD00CB72B1 /* NSImage+Rotate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSImage+Rotate.m"; sourceTree = "<group>"; };
+		13E699FD0F0AA48400CB72B1 /* NSString+Replacing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+Replacing.m"; sourceTree = "<group>"; };
+		13E699FF0F0AA48F00CB72B1 /* NSString+Replacing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+Replacing.h"; sourceTree = "<group>"; };
+		13EF54A20F059F250050DEBC /* FullScreenableWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FullScreenableWindowController.m; sourceTree = "<group>"; };
+		13EF54A30F059F250050DEBC /* FullScreenableWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FullScreenableWindowController.h; sourceTree = "<group>"; };
+		13EF54A70F059F8A0050DEBC /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = Resources/English.lproj/FullScreenable.xib; sourceTree = "<group>"; };
+		13EF54AD0F05A1570050DEBC /* ContainerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContainerView.h; sourceTree = "<group>"; };
+		13EF54AE0F05A1570050DEBC /* ContainerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ContainerView.m; sourceTree = "<group>"; };
+		13EF54B50F05A2D40050DEBC /* ContainerWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContainerWindowController.h; sourceTree = "<group>"; };
+		13EF54B60F05A2EB0050DEBC /* ContainerWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ContainerWindowController.m; sourceTree = "<group>"; };
+		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
+		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		32CA4F630368D1EE00C91783 /* EarthSurfer.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EarthSurfer.pch; sourceTree = "<group>"; };
+		634B1AFB0EEE5AA20014B346 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Icon.icns; sourceTree = "<group>"; };
+		63560A1E0EE11ED0004C1B6D /* BalanceBeamView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BalanceBeamView.m; sourceTree = "<group>"; };
+		63560A1F0EE11ED0004C1B6D /* BalanceBeamView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BalanceBeamView.h; sourceTree = "<group>"; };
+		63560A210EE11EDE004C1B6D /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		63560A220EE11EDE004C1B6D /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		63560A470EE12216004C1B6D /* bb100.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bb100.png; sourceTree = "<group>"; };
+		63560A480EE12216004C1B6D /* bb30.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bb30.png; sourceTree = "<group>"; };
+		63560A490EE12216004C1B6D /* bb0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bb0.png; sourceTree = "<group>"; };
+		639A5CDD0EE13C8000850ED8 /* WiiRemote.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WiiRemote.h; sourceTree = "<group>"; };
+		639A5CDE0EE13C8000850ED8 /* WiiRemote.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WiiRemote.m; sourceTree = "<group>"; };
+		639A5CDF0EE13C8000850ED8 /* WiiRemoteDiscovery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WiiRemoteDiscovery.h; sourceTree = "<group>"; };
+		639A5CE00EE13C8000850ED8 /* WiiRemoteDiscovery.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WiiRemoteDiscovery.m; sourceTree = "<group>"; };
+		639A5CE10EE13C8000850ED8 /* WiiRemotePrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WiiRemotePrivate.h; sourceTree = "<group>"; };
+		639A5CEB0EE13C9300850ED8 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = /System/Library/Frameworks/IOBluetooth.framework; sourceTree = "<absolute>"; };
+		63BBB38F0EE1CAF800B1075B /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8D1107320486CEB800E47090 /* EarthSurfer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EarthSurfer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8D11072E0486CEB800E47090 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
+				639A5CEC0EE13C9300850ED8 /* IOBluetooth.framework in Frameworks */,
+				63BBB3900EE1CAF800B1075B /* Carbon.framework in Frameworks */,
+				1392B1F80EF040C000A240B8 /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		080E96DDFE201D6D7F000001 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				63560A210EE11EDE004C1B6D /* AppDelegate.h */,
+				63560A220EE11EDE004C1B6D /* AppDelegate.m */,
+				63560A1E0EE11ED0004C1B6D /* BalanceBeamView.m */,
+				63560A1F0EE11ED0004C1B6D /* BalanceBeamView.h */,
+				13EF54AD0F05A1570050DEBC /* ContainerView.h */,
+				13EF54AE0F05A1570050DEBC /* ContainerView.m */,
+				13EF54B50F05A2D40050DEBC /* ContainerWindowController.h */,
+				13EF54B60F05A2EB0050DEBC /* ContainerWindowController.m */,
+				1362292B0F87EDD700AD92CF /* CursorShielder.h */,
+				1362292C0F87EDD700AD92CF /* CursorShielder.m */,
+				13EF54A30F059F250050DEBC /* FullScreenableWindowController.h */,
+				13EF54A20F059F250050DEBC /* FullScreenableWindowController.m */,
+				13E52AA10F0EF2510086AEC4 /* SurfboardDecoder.h */,
+				13E52AA20F0EF2510086AEC4 /* SurfboardDecoder.m */,
+			);
+			path = Classes;
+			sourceTree = "<group>";
+		};
+		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				639A5CEB0EE13C9300850ED8 /* IOBluetooth.framework */,
+				63BBB38F0EE1CAF800B1075B /* Carbon.framework */,
+				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
+				1392B1F70EF040C000A240B8 /* WebKit.framework */,
+			);
+			name = "Linked Frameworks";
+			sourceTree = "<group>";
+		};
+		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
+				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		13E5DBEE0EFB244300C6D422 /* Javascript */ = {
+			isa = PBXGroup;
+			children = (
+				13E5DBEF0EFB245900C6D422 /* surfer1.js */,
+			);
+			name = Javascript;
+			sourceTree = "<group>";
+		};
+		13E699EF0F0AA3C400CB72B1 /* Categories */ = {
+			isa = PBXGroup;
+			children = (
+				13E699F60F0AA3FD00CB72B1 /* NSImage+Rotate.h */,
+				13E699F70F0AA3FD00CB72B1 /* NSImage+Rotate.m */,
+				13E699FF0F0AA48F00CB72B1 /* NSString+Replacing.h */,
+				13E699FD0F0AA48400CB72B1 /* NSString+Replacing.m */,
+			);
+			path = Categories;
+			sourceTree = "<group>";
+		};
+		19C28FACFE9D520D11CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8D1107320486CEB800E47090 /* EarthSurfer.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		29B97314FDCFA39411CA2CEA /* BalanceBeamView */ = {
+			isa = PBXGroup;
+			children = (
+				13D9FEAA0F16C883007D5B86 /* Documentation */,
+				13E699EF0F0AA3C400CB72B1 /* Categories */,
+				080E96DDFE201D6D7F000001 /* Classes */,
+				639A5CDB0EE13C8000850ED8 /* wiiRemoteFramework */,
+				29B97315FDCFA39411CA2CEA /* Other Sources */,
+				13E5DBEE0EFB244300C6D422 /* Javascript */,
+				29B97317FDCFA39411CA2CEA /* Resources */,
+				29B97323FDCFA39411CA2CEA /* Frameworks */,
+				19C28FACFE9D520D11CA2CBB /* Products */,
+			);
+			name = BalanceBeamView;
+			sourceTree = "<group>";
+		};
+		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+				32CA4F630368D1EE00C91783 /* EarthSurfer.pch */,
+				29B97316FDCFA39411CA2CEA /* main.m */,
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		29B97317FDCFA39411CA2CEA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8D1107310486CEB800E47090 /* Info.plist */,
+				1392B1D60EF03F2700A240B8 /* InfoPlist.strings */,
+				1392B1EA0EF03F7A00A240B8 /* Localizable.strings */,
+				13EF54A60F059F8A0050DEBC /* FullScreenable.xib */,
+				139F86F60F17E5EA00C94BF3 /* Credits.rtf */,
+				1392B1D90EF03F4500A240B8 /* Main.xib */,
+				63560A470EE12216004C1B6D /* bb100.png */,
+				63560A480EE12216004C1B6D /* bb30.png */,
+				63560A490EE12216004C1B6D /* bb0.png */,
+				634B1AFB0EEE5AA20014B346 /* Icon.icns */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
+				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		639A5CDB0EE13C8000850ED8 /* wiiRemoteFramework */ = {
+			isa = PBXGroup;
+			children = (
+				13535ABC0EFB061F004A97D5 /* Mii.h */,
+				639A5CDD0EE13C8000850ED8 /* WiiRemote.h */,
+				639A5CDE0EE13C8000850ED8 /* WiiRemote.m */,
+				639A5CDF0EE13C8000850ED8 /* WiiRemoteDiscovery.h */,
+				639A5CE00EE13C8000850ED8 /* WiiRemoteDiscovery.m */,
+				639A5CE10EE13C8000850ED8 /* WiiRemotePrivate.h */,
+			);
+			path = wiiRemoteFramework;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8D1107260486CEB800E47090 /* EarthSurfer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "EarthSurfer" */;
+			buildPhases = (
+				8D1107290486CEB800E47090 /* Resources */,
+				8D11072C0486CEB800E47090 /* Sources */,
+				8D11072E0486CEB800E47090 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = EarthSurfer;
+			productInstallPath = "$(HOME)/Applications";
+			productName = BalanceBeamView;
+			productReference = 8D1107320486CEB800E47090 /* EarthSurfer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		29B97313FDCFA39411CA2CEA /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "EarthSurfer" */;
+			compatibilityVersion = "Xcode 3.1";
+			hasScannedForEncodings = 1;
+			mainGroup = 29B97314FDCFA39411CA2CEA /* BalanceBeamView */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8D1107260486CEB800E47090 /* EarthSurfer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8D1107290486CEB800E47090 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				63560A4A0EE12216004C1B6D /* bb100.png in Resources */,
+				63560A4B0EE12216004C1B6D /* bb30.png in Resources */,
+				63560A4C0EE12216004C1B6D /* bb0.png in Resources */,
+				634B1AFC0EEE5AA20014B346 /* Icon.icns in Resources */,
+				13E5DBF00EFB245900C6D422 /* surfer1.js in Resources */,
+				1392B1D80EF03F2700A240B8 /* InfoPlist.strings in Resources */,
+				1392B1DB0EF03F4500A240B8 /* Main.xib in Resources */,
+				1392B1EC0EF03F7A00A240B8 /* Localizable.strings in Resources */,
+				13EF54A80F059F8A0050DEBC /* FullScreenable.xib in Resources */,
+				139F86F80F17E5EA00C94BF3 /* Credits.rtf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8D11072C0486CEB800E47090 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D11072D0486CEB800E47090 /* main.m in Sources */,
+				63560A200EE11ED0004C1B6D /* BalanceBeamView.m in Sources */,
+				63560A230EE11EDE004C1B6D /* AppDelegate.m in Sources */,
+				639A5CE20EE13C8000850ED8 /* WiiRemote.m in Sources */,
+				639A5CE30EE13C8000850ED8 /* WiiRemoteDiscovery.m in Sources */,
+				13EF54A40F059F250050DEBC /* FullScreenableWindowController.m in Sources */,
+				13EF54AF0F05A1570050DEBC /* ContainerView.m in Sources */,
+				13EF54B70F05A2EB0050DEBC /* ContainerWindowController.m in Sources */,
+				13E699F80F0AA3FD00CB72B1 /* NSImage+Rotate.m in Sources */,
+				13E699FE0F0AA48500CB72B1 /* NSString+Replacing.m in Sources */,
+				13E52AA30F0EF2510086AEC4 /* SurfboardDecoder.m in Sources */,
+				1362292D0F87EDD700AD92CF /* CursorShielder.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		1392B1D60EF03F2700A240B8 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1392B1D70EF03F2700A240B8 /* InfoPlist.strings */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		1392B1D90EF03F4500A240B8 /* Main.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1392B1DA0EF03F4500A240B8 /* Main.xib */,
+			);
+			name = Main.xib;
+			sourceTree = "<group>";
+		};
+		1392B1EA0EF03F7A00A240B8 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1392B1EB0EF03F7A00A240B8 /* Localizable.strings */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		139F86F60F17E5EA00C94BF3 /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				139F86F70F17E5EA00C94BF3 /* English */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		13EF54A60F059F8A0050DEBC /* FullScreenable.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				13EF54A70F059F8A0050DEBC /* English */,
+			);
+			name = FullScreenable.xib;
+			path = ..;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		C01FCF4B08A954540054247B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Resources\"",
+				);
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = EarthSurfer.pch;
+				INFOPLIST_FILE = Resources/Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_NAME = EarthSurfer;
+			};
+			name = Debug;
+		};
+		C01FCF4C08A954540054247B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Resources\"",
+				);
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = EarthSurfer.pch;
+				INFOPLIST_FILE = Resources/Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_NAME = EarthSurfer;
+			};
+			name = Release;
+		};
+		C01FCF4F08A954540054247B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "-DDEBUG=1";
+				PREBINDING = NO;
+				SDKROOT = macosx10.4;
+			};
+			name = Debug;
+		};
+		C01FCF5008A954540054247B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.5;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "EarthSurfer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C01FCF4B08A954540054247B /* Debug */,
+				C01FCF4C08A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C01FCF4E08A954540054247B /* Build configuration list for PBXProject "EarthSurfer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C01FCF4F08A954540054247B /* Debug */,
+				C01FCF5008A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 29B97313FDCFA39411CA2CEA /* Project object */;
+}

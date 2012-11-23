@@ -1,0 +1,102 @@
+//   Copyright 2009 Google Inc.
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
+* { margin: 0
+}
+
+html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: arial; 
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+div {
+  margin: 0;
+  padding: 0;
+}
+
+textarea {
+  padding: 6px;
+}
+
+form {
+  border: 1px solid silver; 
+  padding: 3px; 
+  background: #fafafa; 
+  margin-bottom: 0; 
+  width: 100%
+}
+
+#eval_out {
+  margin-top: 3px; 
+  border: 1px solid silver; 
+  height: 200px; 
+  overflow: auto; 
+  background: white;
+
+}
+
+#samples {
+  margin-left: 8px; 
+  margin-right: 8px; 
+  border: 1px solid silver; 
+  padding: 4px; 
+  width: 280px;
+}
+
+.run_sample {
+  font-size: x-small;
+  float: right;
+}
+
+#map3d_container {
+  position: absolute;
+  border: 1px solid silver; 
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+#map3d {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: 10;
+}
+
+#load_sample_label {  
+  font-weight: bold; 
+  margin-bottom: 4px;
+}
+
+.button { background-color: #D0D0D0; cursor: pointer; }
+.button:link { background-color: #D0D0D0; cursor: pointer; }
+.button:hover { background-color: #B0B0FF; cursor: pointer; }
+.button:active { background-color: #FFB0B0; cursor: pointer; }
+.medw { width: 80px; }
+.wide { width: 120px; }
+.narrow { width: 40px; }
+
+.title {
+  font-family: Impact;
+  font-size: 20pt;
+}
