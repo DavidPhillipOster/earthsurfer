@@ -104,7 +104,7 @@ static NSString *modelURL =
     NSString *path = [mainBundle pathForResource:@"surfer1" ofType:@"js"];
     NSURL *url = [NSURL fileURLWithPath:path];
     NSMutableString *theJavascriptProgram =
-      [NSMutableString stringWithContentsOfURL:url];
+      [NSMutableString stringWithContentsOfURL:url usedEncoding:NULL error:NULL];
     NSRange wholeRange = NSMakeRange(0, [theJavascriptProgram length]);
 
 #if 1

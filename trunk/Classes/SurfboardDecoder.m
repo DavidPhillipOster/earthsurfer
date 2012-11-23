@@ -166,9 +166,9 @@ BOOL IsApproximatelyEqual(double a, double b) {
       }
     }
     averageTotalWeight_ *= 2.2;
-    totalWeight *= 2.2;
 
 #if 0 // for DEBUGGING
+    totalWeight *= 2.2;
     NSString *s = [NSString stringWithFormat:@"%5.1f\t%5.1f", averageTotalWeight_, totalWeight];
     printf("=%s\n", [s UTF8String]);
     [TheAppDelegate() setLegend:s];

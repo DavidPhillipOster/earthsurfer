@@ -257,7 +257,7 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	for (i=0; i<6 ; i++) {
 		ret = [_cchan writeSync:buf length:length];		
 		if (ret != kIOReturnSuccess) {
-			NSLogDebug(@"Write Error for command 0x%x:", buf[1], ret);		
+			NSLogDebug(@"Write Error for command 0x%x:%d", buf[1], ret);		
 			LogIOReturn (ret);
 //			[self closeConnection];
 			usleep (10000);
@@ -499,7 +499,7 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	unsigned char cmd [22];
 
 	if (length > 16)
-		NSLog (@"Error! Trying to write more than 16 bytes of data (length=%i)", length);
+		NSLog (@"Error! Trying to write more than 16 bytes of data (length=%d)", (int)length);
 
 	memset (cmd, 0, 22);
 	memcpy (cmd + 6, data, length);
@@ -907,6 +907,9 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 				}
 			}
 			break;
+    default:
+			NSLogDebug (@"Unsupported extension type:%d", expType);
+      break;
 	}
 } // handleExtensionData
 

@@ -18,15 +18,19 @@
 //
 
 #import <Cocoa/Cocoa.h>
+// Since are window has no title bar, the default values for these methods break.
+@interface FullScreenableWindow : NSWindow {
+}
+@end
 
 // Given a view in a window, move the view to a fullscreen window or back to
 // the original window, depending on the state of the isFullScreen BOOL.
 //
-// Additionsal complexity: the Google Earth Browser Plugin does not like its
+// Additional complexity: the Google Earth Browser Plugin does not like its
 // owning webview to move from window to window, so I had to find a way to go
 // from a semi-normal state to a full screen state in the same window.
 // I did it by using parent and child windows, where the parent window is just a title bar.
-@interface FullScreenableWindowController : NSWindowController {
+@interface FullScreenableWindowController : NSWindowController<NSWindowDelegate> {
  @private
   IBOutlet NSWindow *titleBarWindow_;
   IBOutlet NSView *view_;
@@ -47,6 +51,9 @@
   NSSize titleBarWindowStandardZoomSize_;
   NSRect windowNormalZoomFrame_;
 }
+@property (nonatomic, retain) NSWindow *titleBarWindow;
+@property (nonatomic, retain) NSView *view;
+
 - (NSWindow *)titleBarWindow;
 
 - (NSView *)view;

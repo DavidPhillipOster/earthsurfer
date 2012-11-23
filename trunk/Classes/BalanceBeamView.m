@@ -59,7 +59,10 @@
 
 - (void)drawRect:(NSRect)rect {
 	NSRect bounds = [self bounds];
-  [bb0_ compositeToPoint:NSMakePoint(0, 0) operation:NSCompositeSourceOver];
+  NSRect srcRect;
+  srcRect.origin = NSZeroPoint;
+  srcRect.size = [bb0_ size];
+  [bb0_ drawAtPoint:NSMakePoint(0, 0) fromRect:srcRect operation:NSCompositeSourceOver fraction:1];
 
 	NSRect tlRect = NSMakeRect(0, center_.y, center_.x, bounds.size.height - center_.y);
 	NSRect blRect = NSMakeRect(0, 0, center_.x, center_.y);

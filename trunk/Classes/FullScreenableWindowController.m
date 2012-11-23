@@ -20,10 +20,6 @@
 #import "FullScreenableWindowController.h"
 #import <Carbon/Carbon.h>
 
-// Since are window has no title bar, the default values for these methods break.
-@interface FullScreenableWindow : NSWindow {
-}
-@end
 
 @implementation FullScreenableWindow
 
@@ -88,6 +84,8 @@
 @end
 
 @implementation FullScreenableWindowController
+@synthesize titleBarWindow = titleBarWindow_;
+@synthesize view = view_;
 
 - (id)initWithWindow:(NSWindow *)window {
   self = [super initWithWindow:window];
@@ -121,7 +119,7 @@
 
 - (void)awakeFromNib {
   NSRect frame = [[self window] frame];
-  titleBarWindow_ = [self window];
+  titleBarWindow_ = [[self window] retain];
   [titleBarWindow_ setDelegate:self];
   [titleBarWindow_ setHasShadow:NO];
   [titleBarWindow_ setShowsResizeIndicator:NO];
@@ -140,7 +138,7 @@
   frame.size.height = 20.;
   [titleBarWindow_ setFrame:frame display:YES];
   [titleBarWindow_ addChildWindow:[self window] ordered:NSWindowBelow];
-  [titleBarWindow_ makeKeyAndOrderFront:self];
+  [titleBarWindow_ performSelector:@selector(makeKeyAndOrderFront:) withObject:nil afterDelay:0.01];
   NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
   [nc addObserver:self
          selector:@selector(FullScreenableWindowWillClose:)
@@ -216,7 +214,13 @@
 
 
 - (void)FullScreenableWindowWillClose:(NSNotification *)notify {
+  NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+  [nc removeObserver:self name:NSWindowWillCloseNotification object:titleBarWindow_];
   [[self window] close];
+  [nc addObserver:self
+         selector:@selector(FullScreenableWindowWillClose:)
+             name:NSWindowWillCloseNotification
+           object:titleBarWindow_];
 }
 
 #pragma mark -
@@ -264,6 +268,8 @@
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notify {
+  NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+  [nc removeObserver:self];
   [self setFullScreen:NO];
   [[self window] saveFrameUsingName:@"Earth-Surfer"];
 }

@@ -54,31 +54,30 @@ static Place places[] = {
 
 @implementation AppDelegate
 
-- (void)awakeFromNib {
+- (void)applicationDidFinishLaunching:(NSNotification *)notification {
 	[[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(expansionPortChanged:)
                                                name:@"WiiRemoteExpansionPortChangedNotification"
                                              object:nil];
-
+  [winController_ release];
+  winController_ = [[ContainerWindowController alloc] initWithWindowNibName:@"FullScreenable"];
+  [winController_ window];  // load the nib file.
 	discovery_ = [[WiiRemoteDiscovery alloc] init];
-
   if (nil == discovery_) {
     NSBeep();
-    NSAlert *alert = [[NSAlert alloc] init];
-    [alert setMessageText: NSLocalizedString(@"Requires Bluetooth", @"")];
-    [alert setInformativeText: NSLocalizedString(@"Couldn't initialize Bluetooth.", @"")];
-    [alert addButtonWithTitle: NSLocalizedString(@"Quit", @"")];
-    if (NSAlertFirstButtonReturn == [alert runModal]){
+    alert_ = [[NSAlert alloc] init];
+    [alert_ setMessageText: NSLocalizedString(@"Requires Bluetooth", @"")];
+    [alert_ setInformativeText: NSLocalizedString(@"Couldn't initialize Bluetooth.", @"")];
+    [alert_ addButtonWithTitle: NSLocalizedString(@"Quit", @"")];
+    if (NSAlertFirstButtonReturn == [alert_ runModal]){
       [NSApp terminate: nil];
     }
   }
 
-  winController_ = [[ContainerWindowController alloc] initWithWindowNibName:@"FullScreenable"];
   NSResponder *nextResponder = [[winController_ window] nextResponder];
   [self setNextResponder:nextResponder];
   [[winController_ titleBarWindow] setNextResponder:self];
   [[winController_ window] setNextResponder:self];
-  [[winController_ window] makeKeyAndOrderFront:self];
 
 //  [self clearCache:nil];  // TODO: comment this out once we are stable.
   WebFrame *mainFrame = [[self webView] mainFrame];
@@ -96,9 +95,7 @@ static Place places[] = {
 	[[self spinner] startAnimation:self];
   surfboardDecoder_ = [[SurfboardDecoder alloc] init];
   [surfboardDecoder_ setDelegate:self];
-}
-
-- (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  [[winController_ window] makeKeyAndOrderFront:self];
   [self toggleFullScreen:nil];
 }
 
@@ -115,6 +112,7 @@ static Place places[] = {
   NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
   [nc removeObserver:self];
   isShuttingDown_ = YES;
+  [alert_ release];
 	[wii_ release];
 	[discovery_ release];
   [winController_ release];
@@ -122,8 +120,7 @@ static Place places[] = {
 }
 
 
-- (void)expansionPortChanged:(NSNotification *)nc{
-  
+- (void)expansionPortChanged:(NSNotification *)nc{ 
 	WiiRemote* tmpWii = (WiiRemote*)[nc object];
 	
 	// Check that the Wiimote reporting is the one we're connected to.
@@ -138,7 +135,6 @@ static Place places[] = {
 }
 
 - (void) wiiRemoteDisconnected:(IOBluetoothDevice*)device {
-
 	[wii_ release];
 	wii_ = nil;
 	[discovery_ stop];

@@ -32,6 +32,7 @@
   WiiRemoteDiscoveryDelegate, WiiRemoteDelegate> {
 
   int teleportIndex_;
+  NSAlert *alert_;
   ContainerWindowController *winController_;
 
 	WiiRemoteDiscovery *discovery_;
