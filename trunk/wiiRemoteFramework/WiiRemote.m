@@ -143,13 +143,13 @@ typedef enum {
 	IOReturn ret = kIOReturnSuccess;
 
 	// it seems like it is not needed to call openConnection in order to open L2CAP channels ...
-  [_cchan release];
+	[_cchan release];
 	_cchan = [[self openL2CAPChannelWithPSM:kBluetoothL2CAPPSMHIDControl delegate:self] retain];
 	if (!_cchan)
 		return kIOReturnNotOpen;
 
 	usleep (20000);
-  [_ichan release];
+	[_ichan release];
 	_ichan = [[self openL2CAPChannelWithPSM:kBluetoothL2CAPPSMHIDInterrupt delegate:self] retain];
 	if (!_ichan)
 		return kIOReturnNotOpen;
@@ -508,13 +508,13 @@ typedef enum {
 	// cam: set delegate to nil
 	[_cchan setDelegate:nil];
 	ret = [_cchan closeChannel];
-  [_cchan release];
+	[_cchan release];
 	_cchan = nil;
 	LogIOReturn (ret);
 	
 	[_ichan setDelegate:nil];
 	ret = [_ichan closeChannel];
-  [_ichan release];
+	[_ichan release];
 	_ichan = nil;
 	LogIOReturn (ret);
 
@@ -1548,11 +1548,11 @@ typedef enum {
 	NSLogDebug (@"l2capChannelClosed (PSM:0x%x)", [l2capChannel getPSM]);
 
 	if (l2capChannel == _cchan) {
-    [_cchan release];
+		[_cchan release];
 		_cchan = nil;
-  }
+	}
 	if (l2capChannel == _ichan) {
-    [_ichan release];
+		[_ichan release];
 		_ichan = nil;
 	}
 	[self closeConnection];
