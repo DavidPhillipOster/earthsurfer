@@ -149,7 +149,7 @@ static Place places[] = {
 }
 
 - (void) buttonChanged:(WiiButtonType) type isPressed:(BOOL) isPressed {
-  if (0 == type) {
+  if (WiiRemoteAButton == type) {
     if ([[self bbView] buttonOn] && !isPressed) {
       // making transition from on to off.
       [self nextTeleport:self];
@@ -163,26 +163,18 @@ static Place places[] = {
 }
 
 
-- (void) balanceBeamChangedTopRight:(int)topRight
-                        bottomRight:(int)bottomRight
-                            topLeft:(int)topLeft
-                         bottomLeft:(int)bottomLeft {
+- (void) rawPressureChanged:(WiiBalanceBoardGrid) bbData {
 	if (!isBalanceBeamCalibrated_) {
-		[[self bbView] setData:topRight br:bottomRight tl:topLeft bl:bottomLeft];
+		[[self bbView] setData:bbData.tr br:bbData.br tl:bbData.tl bl:bbData.bl];
 	}
 }
 
-- (void) balanceBeamKilogramsChangedTopRight:(float)topRight
-                                 bottomRight:(float)bottomRight
-                                     topLeft:(float)topLeft
-                                  bottomLeft:(float)bottomLeft {
-  if ( ! isBalanceBeamCalibrated_) {
-    isBalanceBeamCalibrated_ = YES;
-  }
-	
-	[[self bbView] setData:topRight br:bottomRight tl:topLeft bl:bottomLeft];
-  [surfboardDecoder_ setData:topRight br:bottomRight tl:topLeft bl:bottomLeft];
+- (void) allPressureChanged:(WiiPressureSensorType) type bbData:(WiiBalanceBoardGrid) bbData bbDataInKg:(WiiBalanceBoardGrid) bbDataInKg {
+  isBalanceBeamCalibrated_ = YES;
+	[[self bbView] setData:bbDataInKg.tr br:bbDataInKg.br tl:bbDataInKg.tl bl:bbDataInKg.bl];
+  [surfboardDecoder_ setData:bbDataInKg.tr br:bbDataInKg.br tl:bbDataInKg.tl bl:bbDataInKg.bl];
 }
+
 
 #pragma mark -
 #pragma mark ## WiiRemoteDiscoveryDelegate

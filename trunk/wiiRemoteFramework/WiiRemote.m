@@ -7,32 +7,18 @@
 //
 
 #import "WiiRemote.h"
-#include <unistd.h>
-
-static void NSLogDebugBlock(NSString *prompt, unsigned dataLength, unsigned char *dp) {
-#if DEBUG
-	printf ("\n%s %3d:\n", [prompt UTF8String], dataLength);
-	int i;
-	for(i=0 ; i < dataLength ; i++) {
-		printf(" %02X", dp[i]);
-		if (i && 0 == (i%40)) {
-			printf("\n");
-		}
-	}
-#endif
-}
 
 static WiiJoyStickCalibData kWiiNullJoystickCalibData = {0, 0, 0, 0, 0, 0};
 static WiiAccCalibData kWiiNullAccCalibData = {0, 0, 0, 0, 0, 0};
-static WiiBalanceBeamCalibData kWiiNullBalanceBeamCalibData = {
-	{0, 0, 0, 0}
-};
 
 // define some constants
 #define kWiiIRPixelsWidth 1024.0
 #define kWiiIRPixelsHeight 768.0
 
 #define WII_DECRYPT(data) (((data ^ 0x17) + 0x17) & 0xFF)
+
+#define BIT_2x8_16(dp1, dp2) ((dp1 << 8) | dp2)
+#define PRINT_BB_GRID(grid, value) printf("===Grid %fkg===\nTR %f\nBR %f\nTL %f\nTR %f\n", value, grid.tr, grid.br, grid.tl, grid.tr)
 
 #define WIR_HALFRANGE 256.0
 #define WIR_INTERVAL  10.0
@@ -80,35 +66,6 @@ typedef enum {
 	
 } WiiButtonBitMask;
 
-#pragma mark -
-#pragma mark ** BalanceBeam Helpers **
-
-// Each of the 4 Corners should be increasing.
-static BOOL AreQuadsValid(WiiQuad *quads) {
-	return quads[0].topRight < quads[1].topRight && quads[1].topRight < quads[2].topRight &&
-	quads[0].bottomRight < quads[1].bottomRight && quads[1].bottomRight < quads[2].bottomRight &&
-	quads[0].topLeft < quads[1].topLeft && quads[1].topLeft < quads[2].topLeft &&
-	quads[0].bottomLeft < quads[1].bottomLeft && quads[1].bottomLeft < quads[2].bottomLeft;	
-}
-
-// valLow corresponds to calibratedLow
-// valHigh corresponds to calibratedHigh
-// given valRaw, linearly interpolate and return the appropriate calibrated value.
-float BBInterpolate2(unsigned short valRaw, unsigned short valLow, unsigned short valHigh, float low, float high){
-	return low + (((int)valRaw - (int)valLow) * (high-low) / ((float)valHigh - valLow));
-}
-
-float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short val17, unsigned short val34) {
-	if (valRaw < val17) {
-		return BBInterpolate2(valRaw, val0, val17, 0.0f, 17.0f);
-	} else {
-		return BBInterpolate2(valRaw, val17, val34, 17.0f, 34.0f);
-	}
-}
-
-#pragma mark -
-
-
 @interface WiiRemote (Private)
 - (IOBluetoothL2CAPChannel *) openL2CAPChannelWithPSM:(BluetoothL2CAPPSM) psm delegate:(id) delegate;
 @end
@@ -122,6 +79,11 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	NSLogDebug (@"Wii instantiated");
 
 	if (self != nil) {
+		
+#ifdef DEBUG
+		/* Allow full protocol logging */
+		_dump = TRUE;
+#endif
 		accX = 0x10;
 		accY = 0x10;
 		accZ = 0x10;
@@ -133,6 +95,7 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 		_delegate = nil;
 		_shouldUpdateReportMode = NO;
 		_shouldReadExpansionCalibration = NO;
+		_shouldSetInitialConfiguration = YES; //Used as dirty hack to make sure the Initial configuration is set _after_ device has be indentified
 		_wiiDevice = nil;
 		
 		_opened = NO;
@@ -147,8 +110,7 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 		_isExpansionPortAttached = NO;
 		
 		wiiIRMode = kWiiIRModeExtended;
-		expType = WiiExpNotAttached;
-		balanceBeamCalibData = kWiiNullBalanceBeamCalibData;
+		expType = WiiExpUknown;
 	}
 	return self;
 }
@@ -159,7 +121,7 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	[super dealloc];
 }
 
-- (void) setDelegate:(id<WiiRemoteDelegate>) delegate
+- (void) setDelegate:(id) delegate
 {
 	_delegate = delegate;
 }
@@ -181,35 +143,36 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	IOReturn ret = kIOReturnSuccess;
 
 	// it seems like it is not needed to call openConnection in order to open L2CAP channels ...
-	_cchan = [self openL2CAPChannelWithPSM:kBluetoothL2CAPPSMHIDControl delegate:self];
+  [_cchan release];
+	_cchan = [[self openL2CAPChannelWithPSM:kBluetoothL2CAPPSMHIDControl delegate:self] retain];
 	if (!_cchan)
 		return kIOReturnNotOpen;
 
-	usleep(20000);
-	_ichan = [self openL2CAPChannelWithPSM:kBluetoothL2CAPPSMHIDInterrupt delegate:self];
+	usleep (20000);
+  [_ichan release];
+	_ichan = [[self openL2CAPChannelWithPSM:kBluetoothL2CAPPSMHIDInterrupt delegate:self] retain];
 	if (!_ichan)
 		return kIOReturnNotOpen;
 	
-	usleep(20000);
+	NSLogDebug(@"Allow bluetooth stack to 'settle', wait few milliseconds");
+	usleep (20000);
 	
-//            statusTimer = [[NSTimer scheduledTimerWithTimeInterval:60 target:self selector:@selector(getCurrentStatus:) userInfo:nil repeats:YES] retain];
-	// TODO: this is a kludge. We should be looking for the device ID.
-	// full name is @"Nintendo RVL-WBC-01"
-	_isBalanceBeam = [[_wiiDevice getName] hasPrefix:@"Nintendo RVL-WBC"];
+    //statusTimer = [[NSTimer scheduledTimerWithTimeInterval:60 target:self selector:@selector(getCurrentStatus:) userInfo:nil repeats:YES] retain];
+	
+	//Initial polling - find out of status of current device
 	ret = [self getCurrentStatus:nil];	
+    
+	/* Allow recognition of device, BB for example is kind of slow in startup ;-)
+	 * Value determined by experimenting:
+	 * *20000 is causing timeouts
+	 * *1000 causes WiiBalanceBoard not be be detected
+	 */ 
+	usleep (10000);
+	 
+	/* Moved initial intitalization after device recognising scheme, as Balanance Board dieds while polling the IRSensor
+	 * Find a more clever way to detect we are actually talking to the Wii Device 
+	*/
 
-	if (ret == kIOReturnSuccess && ! _isBalanceBeam) {
-		// Get Accelerometer calibration data
-		ret = [self readData:0x0020 length:7];
-	}
-	if (ret == kIOReturnSuccess) {
-		[self setMotionSensorEnabled:NO];
-		[self setIRSensorEnabled:NO];
-		[self setForceFeedbackEnabled:NO];
-		[self setLEDEnabled1:NO enabled2:NO enabled3:NO enabled4:NO];
-		[self updateReportMode];
-//		ret = [self doUpdateReportMode];
-	}
 	
 	if ((ret == kIOReturnSuccess) && [self available]) {
 		disconnectNotification = [_wiiDevice registerForDisconnectNotification:self selector:@selector(disconnected:fromDevice:)];
@@ -218,7 +181,7 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 		_opened = NO;
 		[self closeConnection];
 	}
-	NSLogDebug(@"connectTo returns:%d", ret);
+
 	return ret;
 }
 
@@ -226,8 +189,6 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 {
 	NSLogDebug (@"Disconnected.");
 	if (device == _wiiDevice) {
-//		_cchan = nil;
-//		_ichan = nil;
 		[self closeConnection];
 	}
 }
@@ -241,23 +202,27 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	memcpy (buf+1, data, length);
 	if (buf[1] == 0x16) length = 23;
 	else				length++;
-
-//	printf ("send%3d:", length);
-//	for(i=0 ; i<length ; i++) {
-//		printf(" %02X", buf[i]);
-//	}
-//	printf("\n");
-	NSLogDebugBlock(@"send:", length, buf);
 	
+#ifdef DEBUG	
+	if (_dump) {
+		int i;
+		printf ("channel:%i - send%3u:", [_cchan getPSM], (unsigned int)length);
+		for(i=0 ; i<length ; i++) {
+			printf(" %02X", buf[i]);
+		}
+		printf("\n");
+	}
+#endif	
+
 	IOReturn ret = kIOReturnSuccess;
 	
+	int i;
 	// cam: i think there is no need to do the loop many times in order to see there is an error
 	// if there's an error it must be managed right away
-	int i;
-	for (i=0; i<6 ; i++) {
+	for (i=0; i<10 ; i++) {
 		ret = [_cchan writeSync:buf length:length];		
 		if (ret != kIOReturnSuccess) {
-			NSLogDebug(@"Write Error for command 0x%x:%d", buf[1], ret);		
+			NSLogDebug(@"Write Error for command 0x%x: %d", buf[1], ret);
 			LogIOReturn (ret);
 //			[self closeConnection];
 			usleep (10000);
@@ -281,9 +246,6 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 
 - (void) setMotionSensorEnabled:(BOOL) enabled
 {
-	if (_isBalanceBeam) {
-		return;
-	}
 	if (enabled) {
 		NSLogDebug (@"Set motion sensor enabled");
 	} else {
@@ -299,9 +261,6 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 
 - (void) setForceFeedbackEnabled:(BOOL) enabled
 {
-	if (_isBalanceBeam) {
-		return;
-	}
 	// this variable indicate a desire, and should be updated regardless of the sucess of sending the command
 	_isVibrationEnabled = enabled;
 	[self updateReportMode];
@@ -309,9 +268,6 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 
 - (void) setLEDEnabled1:(BOOL) enabled1 enabled2:(BOOL) enabled2 enabled3:(BOOL) enabled3 enabled4:(BOOL) enabled4
 {
-	if (_isBalanceBeam) {
-		return;
-	}
 	unsigned char cmd[] = {0x11, 0x00};
 	if (_isVibrationEnabled)	cmd[1] |= 0x01;
 	if (enabled1)	cmd[1] |= 0x10;
@@ -325,7 +281,6 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	_isLED4Illuminated = enabled4;
 	
 	IOReturn ret = [self sendCommand:cmd length:2];
-  if (ret) {}  // otherwise release target will complain: unused.
 	LogIOReturn (ret);
 }
 
@@ -374,12 +329,13 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 		0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 16/36 IR bytes
 		
 	*/
+		
 	if (_isIRSensorEnabled) {
 		cmd[2] = _isExpansionPortEnabled ? 0x36 : 0x33;	// Buttons, 10 IR Bytes, 9 Extension Bytes
 		wiiIRMode = _isExpansionPortEnabled ? kWiiIRModeBasic : kWiiIRModeExtended;
 		
 		// Set IR Mode
-		//		NSLogDebug (@"Setting IR Mode to finish initialization.");
+		NSLogDebug (@"Setting IR Mode to finish initialization.");
 		// I don't think it should be here ...		
 		[self writeData:(darr){ wiiIRMode } at:0x04B00033 length:1];
 		usleep(10000);
@@ -408,22 +364,15 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 		NSLogDebug (@"Disabling expansion port.");	
 
 	if (_isExpansionPortAttached) {
-		_isExpansionPortEnabled = enabled;
+		_isExpansionPortEnabled = enabled;		
 		// get expansion device calibration data
 		_shouldReadExpansionCalibration = YES;
-		_shouldReadExpansionCalibrationHigh = YES;
-		if (_isBalanceBeam) {
-			// report format doesn't allow us to get the entire calibration
-			// data in single read.
-      usleep(10000);
-			ret = [self readData:0x04a40024 length: 12];
-			if (ret == kIOReturnSuccess) {
-				usleep(10000);
-				ret = [self readData:0x04a40030 length: 12];
-			}
-		} else {
-			ret = [self readData:0x04A40020 length: 16];
-		}
+		/* Calibration of WiiRemote takes up only 16 bytes, BalanceBoard however uses 32 bytes
+		 * http://wiibrew.org/wiki/Wii_Balance_Board#Calibration_Data as second set of bytes on WiiRemote 
+		 * are zero http://wiibrew.org/wiki/Wiimote#Extension_Controller no harm of fetching the full 32 bytes :-)
+		 */
+		NSLogDebug (@"Requesting expansion calibration data");
+		ret = [self readData:0x04A40020 length: 32];
 		LogIOReturn (ret);
 	}
 
@@ -433,9 +382,6 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 //based on Ian's codes. thanks!
 - (void) setIRSensorEnabled:(BOOL) enabled
 {
-	if (_isBalanceBeam) {
-		return;
-	}
 	_isIRSensorEnabled = enabled;
 		
 	// ir enable 1
@@ -499,7 +445,7 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	unsigned char cmd [22];
 
 	if (length > 16)
-		NSLog (@"Error! Trying to write more than 16 bytes of data (length=%d)", (int)length);
+		NSLog (@"Error! Trying to write more than 16 bytes of data (length=%lu", length);
 
 	memset (cmd, 0, 22);
 	memcpy (cmd + 6, data, length);
@@ -562,11 +508,13 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	// cam: set delegate to nil
 	[_cchan setDelegate:nil];
 	ret = [_cchan closeChannel];
+  [_cchan release];
 	_cchan = nil;
 	LogIOReturn (ret);
 	
 	[_ichan setDelegate:nil];
 	ret = [_ichan closeChannel];
+  [_ichan release];
 	_ichan = nil;
 	LogIOReturn (ret);
 
@@ -582,13 +530,35 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	return ret;
 }
 
+- (void) setInitialConfiguration
+{
+	if (_shouldSetInitialConfiguration) {
+		if (expType != WiiBalanceBoard) {
+			NSLogDebug(@"Setting default wiimote values");
+				
+			IOReturn ret = [self readData:0x0020 length:7]; // Get Accelerometer calibration data
+				
+			if (ret == kIOReturnSuccess) {
+				[self setMotionSensorEnabled:YES];
+				[self setIRSensorEnabled:NO];
+				[self setForceFeedbackEnabled:NO];
+				[self setLEDEnabled1:YES enabled2:NO enabled3:NO enabled4:NO];
+				[self updateReportMode];
+				//ret = [self doUpdateReportMode];
+			}
+		}
+		
+		_shouldSetInitialConfiguration = NO;
+	}
+}
+
+
 - (void) handleWriteResponse:(unsigned char *) dp length:(size_t) dataLength
 {
 	NSLogDebug (@"Write data response: %00x %00x %00x %00x", dp[2], dp[3], dp[4], dp[5]);
 }
 
-
-	/**
+	/** Also see: http://wiibrew.org/wiki/Wiimote#Reading_and_Writing 
 	 * Handle report 0x21 (Read Data) from wiimote.
 	 * dp[0] = Bluetooth header
 	 * dp[1] = (0x21) Report/Channel ID
@@ -643,22 +613,29 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 				NSLogDebug (@"Classic controller connected.");
 				if (expType != WiiClassicController) {
 					expType = WiiClassicController;
-					[[NSNotificationCenter defaultCenter] postNotificationName:WiiRemoteExpansionPortChangedNotification object:self];				
+					[[NSNotificationCenter defaultCenter] postNotificationName:WiiRemoteExpansionPortChangedNotification object:self];					
 				}
 				break;
-			case 0x2A:
-				NSLogDebug (@"Balance Beam connected.");
-				if (expType != WiiBalanceBeam) {
-					expType = WiiBalanceBeam;
-					[[NSNotificationCenter defaultCenter] postNotificationName:WiiRemoteExpansionPortChangedNotification object:self];				
+			case 0x2a:
+				NSLogDebug (@"Balance Board connected.");
+				if (expType != WiiBalanceBoard) {
+					expType = WiiBalanceBoard;
+					[[NSNotificationCenter defaultCenter] postNotificationName:WiiRemoteExpansionPortChangedNotification object:self];
+				}
+				break;
+			case 0x2e:
+				NSLogDebug(@"No Expansion detected.");
+				if (expType != WiiExpNotAttached) {
+					expType = WiiExpNotAttached;
+					[[NSNotificationCenter defaultCenter] postNotificationName:WiiRemoteExpansionPortChangedNotification object:self];
 				}
 				break;
 			default:
 				NSLogDebug (@"Unknown device connected (0x%x). ", WII_DECRYPT(dp[21]));
-				expType = WiiExpNotAttached;
+				expType = WiiExpUknown;
 				break;
 		}
-
+		[self setInitialConfiguration];
 		return;
 	}
 		
@@ -675,82 +652,66 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 		return;
 	}
 	
-	// expansion device calibration data.
-	if (_shouldReadExpansionCalibrationHigh &&expType == WiiBalanceBeam && addr == 0x0030) {
-		balanceBeamCalibData.quad[1].topLeft = ((unsigned short) dp[7] << 8) | dp[8];
-		balanceBeamCalibData.quad[1].bottomLeft = ((unsigned short) dp[9] << 8) | dp[10];
-		balanceBeamCalibData.quad[2].topRight = ((unsigned short) dp[11] << 8) | dp[12];
-		balanceBeamCalibData.quad[2].bottomRight = ((unsigned short) dp[13] << 8) | dp[14];
-		balanceBeamCalibData.quad[2].topLeft = ((unsigned short) dp[15] << 8) | dp[16];
-		balanceBeamCalibData.quad[2].bottomLeft = ((unsigned short) dp[17] << 8) | dp[18];
-		NSLogDebug(@"{%d %d %d %d} {%d %d %d %d} {%d %d %d %d}", 
-			balanceBeamCalibData.quad[0].topRight, 
-			balanceBeamCalibData.quad[0].bottomRight, 
-			balanceBeamCalibData.quad[0].topLeft, 
-			balanceBeamCalibData.quad[0].bottomLeft,
-
-			balanceBeamCalibData.quad[1].topRight, 
-			balanceBeamCalibData.quad[1].bottomRight, 
-			balanceBeamCalibData.quad[1].topLeft, 
-			balanceBeamCalibData.quad[1].bottomLeft,
-
-			balanceBeamCalibData.quad[2].topRight, 
-			balanceBeamCalibData.quad[2].bottomRight, 
-			balanceBeamCalibData.quad[2].topLeft, 
-			balanceBeamCalibData.quad[2].bottomLeft);
-		_shouldReadExpansionCalibrationHigh = NO;
-		if (!_shouldReadExpansionCalibration && !_shouldReadExpansionCalibrationHigh) {
-			balanceBeamCalibData.isInitialized = AreQuadsValid(balanceBeamCalibData.quad);
-		}
-		return;
-	}
-	if (_shouldReadExpansionCalibration) {
-		if (expType == WiiBalanceBeam && addr == 0x0024) {
-			NSLogDebugBlock(@"calib", dataLength, dp);
-			balanceBeamCalibData.quad[0].topRight = ((unsigned short) dp[7] << 8) | dp[8];
-			balanceBeamCalibData.quad[0].bottomRight = ((unsigned short) dp[9] << 8) | dp[10];
-			balanceBeamCalibData.quad[0].topLeft = ((unsigned short) dp[11] << 8) | dp[12];
-			balanceBeamCalibData.quad[0].bottomLeft = ((unsigned short) dp[13] << 8) | dp[14];
-			balanceBeamCalibData.quad[1].topRight = ((unsigned short) dp[15] << 8) | dp[16];
-			balanceBeamCalibData.quad[1].bottomRight = ((unsigned short) dp[17] << 8) | dp[18];
-			NSLogDebug(@"{%d %d %d %d}", 
-					   balanceBeamCalibData.quad[0].topRight, 
-					   balanceBeamCalibData.quad[0].bottomRight, 
-					   balanceBeamCalibData.quad[0].topLeft, 
-					   balanceBeamCalibData.quad[0].bottomLeft);
+	// expansion device calibration data.		
+	if (_shouldReadExpansionCalibration && (addr == 0x0020)) {
+		if (expType == WiiNunchuk) {
+			NSLogDebug (@"Read nunchuk calibration");
+			//nunchuk calibration data
+			nunchukCalibData.accX_zero =  WII_DECRYPT(dp[7]);
+			nunchukCalibData.accY_zero =  WII_DECRYPT(dp[8]);
+			nunchukCalibData.accZ_zero =  WII_DECRYPT(dp[9]);
+			
+			nunchukCalibData.accX_1g =  WII_DECRYPT(dp[11]);
+			nunchukCalibData.accY_1g =  WII_DECRYPT(dp[12]);
+			nunchukCalibData.accZ_1g =  WII_DECRYPT(dp[13]);
+			
+			nunchukJoyStickCalibData.x_max =  WII_DECRYPT(dp[15]);
+			nunchukJoyStickCalibData.x_min =  WII_DECRYPT(dp[16]);
+			nunchukJoyStickCalibData.x_center =  WII_DECRYPT(dp[17]);
+			
+			nunchukJoyStickCalibData.y_max =  WII_DECRYPT(dp[18]);
+			nunchukJoyStickCalibData.y_min =  WII_DECRYPT(dp[19]);
+			nunchukJoyStickCalibData.y_center =  WII_DECRYPT(dp[20]);	
+			
 			_shouldReadExpansionCalibration = NO;
-			if (!_shouldReadExpansionCalibration && !_shouldReadExpansionCalibrationHigh) {
-				balanceBeamCalibData.isInitialized = AreQuadsValid(balanceBeamCalibData.quad);
-			}
 			return;
-		} else if (addr == 0x0020) {
-			if (expType == WiiNunchuk) {
-				NSLogDebug (@"Read nunchuk calibration");
-				//nunchuk calibration data
-				nunchukCalibData.accX_zero =  WII_DECRYPT(dp[7]);
-				nunchukCalibData.accY_zero =  WII_DECRYPT(dp[8]);
-				nunchukCalibData.accZ_zero =  WII_DECRYPT(dp[9]);
-				
-				nunchukCalibData.accX_1g =  WII_DECRYPT(dp[11]);
-				nunchukCalibData.accY_1g =  WII_DECRYPT(dp[12]);
-				nunchukCalibData.accZ_1g =  WII_DECRYPT(dp[13]);
-				
-				nunchukJoyStickCalibData.x_max =  WII_DECRYPT(dp[15]);
-				nunchukJoyStickCalibData.x_min =  WII_DECRYPT(dp[16]);
-				nunchukJoyStickCalibData.x_center =  WII_DECRYPT(dp[17]);
-				
-				nunchukJoyStickCalibData.y_max =  WII_DECRYPT(dp[18]);
-				nunchukJoyStickCalibData.y_min =  WII_DECRYPT(dp[19]);
-				nunchukJoyStickCalibData.y_center =  WII_DECRYPT(dp[20]);	
-				
-				_shouldReadExpansionCalibration = NO;
-				return;
-			} else if (expType == WiiClassicController) {
-				//classic controller calibration data (probably)
-			}
+		} else if (expType == WiiBalanceBoard) {
+			NSLogDebug (@"Read Balance Board calibration");
+			/* Format found at http://wiibrew.org/wiki/Wii_Balance_Board#Calibration_Data
+			 * in 24 bytes from 0xa40024 to 0xa4003a
+			 */
+			/* First 4 values 0xa40020 - 0xa40023 unknown */
+			balanceBoardCalibData.kg0.tr = BIT_2x8_16(dp[11], dp[12]);
+			balanceBoardCalibData.kg0.br = BIT_2x8_16(dp[13], dp[14]);
+			balanceBoardCalibData.kg0.tl = BIT_2x8_16(dp[15], dp[16]);
+			balanceBoardCalibData.kg0.bl = BIT_2x8_16(dp[17], dp[18]);
+			balanceBoardCalibData.kg17.tr = BIT_2x8_16(dp[19], dp[20]);
+			balanceBoardCalibData.kg17.br = BIT_2x8_16(dp[21], dp[22]);
+			
+			/* Not yet fully configured, so keep the _shouldReadExpansionCalibration set */
+			return;
+		} else if (expType == WiiClassicController) {
+			//classic controller calibration data (probably)
+		}
+	} else if (_shouldReadExpansionCalibration && (addr == 0x0030)) {
+		if (expType == WiiBalanceBoard) {
+			balanceBoardCalibData.kg17.tl = BIT_2x8_16(dp[7], dp[8]);
+			balanceBoardCalibData.kg17.bl = BIT_2x8_16(dp[9], dp[10]);
+			
+			balanceBoardCalibData.kg34.tr = BIT_2x8_16(dp[11], dp[12]);
+			balanceBoardCalibData.kg34.br = BIT_2x8_16(dp[13], dp[14]);
+			balanceBoardCalibData.kg34.tl = BIT_2x8_16(dp[15], dp[16]);
+			balanceBoardCalibData.kg34.bl = BIT_2x8_16(dp[17], dp[18]);
+			/* Usage of last 4 values also unkown */
+			
+			PRINT_BB_GRID(balanceBoardCalibData.kg0, (float)0);
+			PRINT_BB_GRID(balanceBoardCalibData.kg17, (float)17);
+			PRINT_BB_GRID(balanceBoardCalibData.kg34, (float)34);
+			
+			/* All data read, as 0x0020 data is presented to us already */ 
+			_shouldReadExpansionCalibration = NO;
 		}
 	} // expansion device calibration data
-	
 	// wiimote buttons
 	buttonData = ((short)dp[2] << 8) + dp[3];
 	[self sendWiiRemoteButtonEvent:buttonData];
@@ -759,7 +720,7 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 - (void) handleStatusReport:(unsigned char *) dp length:(size_t) dataLength
 {
 	NSLogDebug (@"Status Report (0x%x)", dp[4]);
-		
+   /* sample: A1 20 00 00 02 00 00 AB */
 	double level = (double) dp[7];
 	level /= (double) 0xC0; // C0 = fully charged.
 
@@ -774,10 +735,12 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 		
 	IOReturn ret = kIOReturnSuccess;
 	if (dp[4] & 0x02) { //some device attached to Wiimote
-		NSLogDebug (@"Device Attached");
+		NSLogDebug (@"Expantion device Attached");
 		if (!_isExpansionPortAttached) {
-      usleep (10000); // balance beam needs the time.
-			ret = [self writeData:(darr){0x00} at:(unsigned long)0x04A40040 length:1]; // Initialize the device
+			/* Initialize the device, reason unknown see for example
+			 * http://www.wiili.org/index.php/Wiimote/Extension_Controllers/Nunchuk#Communication 
+			 */
+			ret = [self writeData:(darr){0x00} at:(unsigned long)0x04A40040 length:1];
 			usleep (10000);
 
 			if (ret != kIOReturnSuccess) {
@@ -786,6 +749,7 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 				return;
 			}
 
+			/* Purpose unkown, but only succesfull when controller attached */
 			IOReturn ret = [self readData:0x04A400F0 length:16]; // read expansion device type
 			LogIOReturn (ret);
 			
@@ -807,6 +771,8 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 			[[NSNotificationCenter defaultCenter] postNotificationName:WiiRemoteExpansionPortChangedNotification object:self];
 		}
 	}
+	
+	[self setInitialConfiguration];
 
 	_isLED1Illuminated = (dp[4] & 0x10);
 	_isLED2Illuminated = (dp[4] & 0x20);
@@ -814,10 +780,30 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	_isLED4Illuminated = (dp[4] & 0x80);
 } // handleStatusReport
 
+- (float) bbPressure2kg:(float) value pkg0:(float) pkg0 pkg17:(float) pkg17 pkg34:(float) pkg34
+{
+	/* Convert to Kilograms
+	 * 0kg=0; value=20; 17kg=100
+	 * eachKG = high - low / 17
+	 * startKG = 0
+	 * result = startKG + (value - low) /result;
+	 */
+	if (value < pkg0) {
+		/* Lower than 0kg should never happen..., but make it 0 anyway */
+		return 0;
+	} else if (value < pkg17) {
+		return  0 + (value - pkg0) / ((pkg17 - pkg0) / 17);
+	} else if (value < pkg34) {
+		return  17 + (value - pkg17) / ((pkg34 - pkg17) / 17);
+	} else {
+		return  34 + (value - pkg34) / ((pkg34 - pkg0) / 34);
+	}
+}
+
 - (void) handleExtensionData:(unsigned char *) dp length:(size_t) dataLength
 {
 	unsigned char startByte;
-	
+		
 	switch (dp[1]) {
 		case 0x34 :
 			startByte = 4;
@@ -884,37 +870,58 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 			}			
 
 			break;
-		case WiiBalanceBeam:
-			{
-				startByte = 4;
-				int tr = (unsigned short)((dp[startByte+0] << 8) + dp[startByte+1]);
-				int br = (unsigned short)((dp[startByte+2] << 8) + dp[startByte+3]);
-				int tl = (unsigned short)((dp[startByte+4] << 8) + dp[startByte+5]);
-				int bl = (unsigned short)((dp[startByte+6] << 8) + dp[startByte+7]);
-				if ([_delegate respondsToSelector:@selector (balanceBeamChangedTopRight:bottomRight:topLeft:bottomLeft:)]) {
-					[_delegate balanceBeamChangedTopRight:tr - balanceBeamCalibData.quad[0].topRight
-											  bottomRight:br - balanceBeamCalibData.quad[0].bottomRight
-												  topLeft:tl - balanceBeamCalibData.quad[0].topLeft
-											   bottomLeft:bl - balanceBeamCalibData.quad[0].bottomLeft];
-				}
-				if (balanceBeamCalibData.isInitialized &&
-					[_delegate respondsToSelector:@selector (balanceBeamKilogramsChangedTopRight:bottomRight:topLeft:bottomLeft:)]) {
-					float trKG = BBInterpolate(tr, balanceBeamCalibData.quad[0].topRight, balanceBeamCalibData.quad[1].topRight, balanceBeamCalibData.quad[2].topRight);
-					float brKG = BBInterpolate(br, balanceBeamCalibData.quad[0].bottomRight, balanceBeamCalibData.quad[1].bottomRight, balanceBeamCalibData.quad[2].bottomRight);
-					float tlKG = BBInterpolate(tl, balanceBeamCalibData.quad[0].topLeft, balanceBeamCalibData.quad[1].topLeft, balanceBeamCalibData.quad[2].topLeft);
-					float blKG = BBInterpolate(bl, balanceBeamCalibData.quad[0].bottomLeft, balanceBeamCalibData.quad[1].bottomLeft, balanceBeamCalibData.quad[2].bottomLeft);
-					[_delegate balanceBeamKilogramsChangedTopRight:trKG bottomRight:brKG topLeft:tlKG bottomLeft:blKG];
-				}
-			}
+		case WiiBalanceBoard:
+			/* http://www.wiili.org/index.php/Wii_Balance_Board_PC_Drivers
+			 * 34 00 00 AA AA BB BB CC CC DD DD? ? ? ? EE.. 
+			 * AA AA right-top (L)
+             * BB BB right-bottom (S) 
+             * CC CC left-top (S)
+			 * DD DD left-bottom (L)
+             *
+			 *  (AA AA... are BigEndian)
+             *
+		     * It seems that some value is also in EE, but the usage is unclear. There are four sensors. 
+			 * It seems that they are placed at each of the 4 feet of the balance board itself.
+             *
+             *  +--------------------+
+			 *	| C0C1 (S)  A0A1 (L) | bPressureTL | bPressureTR // b(alance board) Pressure (sensor) [T(top)|B(bottom)][L(eft)|R(ight)] 
+			 *	| D0D1 (L)  B0B1 (S) | bPressureBL | bPressureBR
+			 *	|        POWER       |
+			 *	+--------------------+
+			 */
+			
+			bPressure.tr = BIT_2x8_16(dp[startByte +0], dp[startByte +1]);
+			bPressure.br = BIT_2x8_16(dp[startByte +2], dp[startByte +3]);
+			bPressure.tl = BIT_2x8_16(dp[startByte +4], dp[startByte +5]);
+			bPressure.bl = BIT_2x8_16(dp[startByte +6], dp[startByte +7]);
+
+			bKg.tr = [self bbPressure2kg:bPressure.tr pkg0:balanceBoardCalibData.kg0.tr pkg17:balanceBoardCalibData.kg17.tr pkg34:balanceBoardCalibData.kg34.tr];
+			bKg.br = [self bbPressure2kg:bPressure.br pkg0:balanceBoardCalibData.kg0.br pkg17:balanceBoardCalibData.kg17.br pkg34:balanceBoardCalibData.kg34.br];
+			bKg.tl = [self bbPressure2kg:bPressure.tl pkg0:balanceBoardCalibData.kg0.tl pkg17:balanceBoardCalibData.kg17.tl pkg34:balanceBoardCalibData.kg34.tl];
+			bKg.bl = [self bbPressure2kg:bPressure.bl pkg0:balanceBoardCalibData.kg0.bl pkg17:balanceBoardCalibData.kg17.bl pkg34:balanceBoardCalibData.kg34.bl];
+
+			if ([_delegate respondsToSelector:@selector (pressureChanged:pressureTR:pressureBR:pressureTL:pressureBL:)])
+				/* Don't use raw values, but use KG for the time beeing */
+				//[_delegate pressureChanged:WiiBalanceBoardPressureSensor pressureTR:bPressure.tr pressureBR:bPressure.br pressureTL:bPressure.tl pressureBL:bPressure.bl];
+				[_delegate pressureChanged:WiiBalanceBoardPressureSensor pressureTR:bKg.tr pressureBR:bKg.br pressureTL:bKg.tl pressureBL:bKg.bl];
+			if ([_delegate respondsToSelector:@selector (rawPressureChanged:)])
+				[_delegate rawPressureChanged:bPressure];
+			if ([_delegate respondsToSelector:@selector (allPressureChanged:bbData:bbDataInKg:)])
+				[_delegate allPressureChanged:WiiBalanceBoardPressureSensor bbData:bPressure bbDataInKg:bKg];
 			break;
+    case WiiExpNotAttached:
+      break;
+    case WiiExpUknown:
     default:
-			NSLogDebug (@"Unsupported extension type:%d", expType);
+			NSLogDebug (@"Unexpected extension data type:%d", expType);
       break;
 	}
 } // handleExtensionData
 
 - (void) handleIRData:(unsigned char *) dp length:(size_t) dataLength
 {
+	
+	/* Set all IR data to array, based on input format */
 //	NSLog(@"Handling IR Data for 0x%00x", dp[1]);	
 	int i = 0;
 	if (dp[1] == 0x33) { // 12 IR bytes
@@ -947,6 +954,7 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 //		  irData[2].x, irData[2].y, irData[2].s,
 //		  irData[3].x, irData[3].y, irData[3].s);
 
+	/* Determine 2 out of 4 points to be used for position calculations  */
 	int p1 = -1;
 	int p2 = -1;
 	// we should modify this loop to take the points with the lowest s (the brightest ones)
@@ -965,7 +973,9 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 //	NSLogDebug (@"p1=%i ; p2=%i", p1, p2);
 
 	double ox, oy;
+	/* Verify wether there exists two points allowing us to do proper tracking */
 	if ((p1 > -1) && (p2 > -1)) {
+		/* Determine left and right point??? */
 		int l = leftPoint;
 		if (leftPoint == -1) {
 			switch (orientation) {
@@ -977,19 +987,24 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 
 			leftPoint = l;
 		}
-
+		
 		int r = 1-l;
-
+		
+		/* Calculate space between point L,R  */
 		double dx = irData[r].x - irData[l].x;
 		double dy = irData[r].y - irData[l].y;
+		/* http://en.wikipedia.org/wiki/Atan2#The_hypot_function */
 		double d = hypot (dx, dy);
 
+		/* Normalize distances */
 		dx /= d;
 		dy /= d;
 
+		/* RvdZ: What is happening over here? */
 		double cx = (irData[l].x + irData[r].x)/kWiiIRPixelsWidth - 1;
 		double cy = (irData[l].y + irData[r].y)/kWiiIRPixelsHeight - 1;
-
+		
+		/* RvdZ: What is happening over here? */
 		ox = -dy*cy-dx*cx;
 		oy = -dx*cy+dy*cx;
 
@@ -1035,6 +1050,11 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 		case 0x37:
 			[self handleExtensionData:dp length:dataLength];
 			break;
+	}
+	
+	/* Balance Board does not have any motion or IR sensors */
+	if (expType == WiiBalanceBoard) {
+		return;
 	}
 	
 	// report contains IR data
@@ -1527,12 +1547,14 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 {
 	NSLogDebug (@"l2capChannelClosed (PSM:0x%x)", [l2capChannel getPSM]);
 
-	if (l2capChannel == _cchan)
+	if (l2capChannel == _cchan) {
+    [_cchan release];
 		_cchan = nil;
-
-	if (l2capChannel == _ichan)
+  }
+	if (l2capChannel == _ichan) {
+    [_ichan release];
 		_ichan = nil;
-	
+	}
 	[self closeConnection];
 } 
 
@@ -1545,11 +1567,17 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	}
 
 	unsigned char * dp = (unsigned char *) dataPointer;
-	
-/*	if (_dump) {
-		NSLogDebug (@"Dumping: 0x%x", dp[1]);
-		Debugger();
-	}*/
+
+#ifdef DEBUG	
+	if (_dump) {
+		int i;
+		printf ("channel:%i - ack%3u:", [l2capChannel getPSM], (unsigned int)dataLength);
+		for(i=0 ; i<dataLength ; i++) {
+			printf(" %02X", dp[i]);
+		}
+		printf("\n");
+	}
+#endif
 
 	if ([_delegate respondsToSelector:@selector (wiimoteWillSendData)])
 		[_delegate wiimoteWillSendData];
@@ -1570,19 +1598,17 @@ float BBInterpolate(unsigned short valRaw, unsigned short val0, unsigned short v
 	if ([_delegate respondsToSelector:@selector (wiimoteDidSendData)])
 		[_delegate wiimoteDidSendData];
 
-  if (_isExpansionPortEnabled) {
-    IOReturn ret = [self doUpdateReportMode];
-    if (ret != kIOReturnSuccess) {
-      _shouldUpdateReportMode = YES;
-      [self doUpdateReportMode];
-      
-      if (ret != kIOReturnSuccess) {
-        NSLogDebug (@"Can't update report mode after two retries, bailing out.");
-        [self closeConnection];
-        return;
-      }
-    }
-  }
+	IOReturn ret = [self doUpdateReportMode];
+	if (ret != kIOReturnSuccess) {
+		_shouldUpdateReportMode = YES;
+		[self doUpdateReportMode];
+		
+		if (ret != kIOReturnSuccess) {
+			NSLogDebug (@"Can't update report mode after two retries, bailing out.");
+			[self closeConnection];
+			return;
+		}
+	}
 //	NSLogDebug (@"Unhandled data received: 0x%x", dp[1]);
 	//if (nil != _delegate)
 		//[_delegate dataChanged:buttonData accX:accX accY:accY accZ:accZ mouseX:ox mouseY:oy];

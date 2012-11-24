@@ -28,8 +28,7 @@
 
 @interface AppDelegate : NSResponder<
   /* WebPolicyDelegate // category of NSObject */
-  SurfboardDecoderDelegate,
-  WiiRemoteDiscoveryDelegate, WiiRemoteDelegate> {
+  SurfboardDecoderDelegate> {
 
   int teleportIndex_;
   NSAlert *alert_;

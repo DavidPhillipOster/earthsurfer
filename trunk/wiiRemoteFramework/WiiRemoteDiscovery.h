@@ -10,20 +10,18 @@
 #import <IOBluetooth/objc/IOBluetoothDeviceInquiry.h> 
 #import "WiiRemote.h"
 
-@protocol WiiRemoteDiscoveryDelegate;
 
 @interface WiiRemoteDiscovery : NSObject {
 	IOBluetoothDeviceInquiry * _inquiry;
 	BOOL _isDiscovering;
-  BOOL _isStarting;
 	
-	id<WiiRemoteDiscoveryDelegate> _delegate;
+	id _delegate;
 }
 
-+ (WiiRemoteDiscovery*) discoveryWithDelegate:(id<WiiRemoteDiscoveryDelegate>)delegate;
++ (WiiRemoteDiscovery*) discoveryWithDelegate:(id)delegate;
 
 - (id) delegate;
-- (void) setDelegate:(id<WiiRemoteDiscoveryDelegate>) delegate;
+- (void) setDelegate:(id) delegate;
 
 - (IOReturn) start;
 - (IOReturn) stop;
@@ -37,7 +35,7 @@
 @end
 
 
-@protocol WiiRemoteDiscoveryDelegate<NSObject>
+@interface NSObject (WiiRemoteDiscoveryDelegate)
 
 - (void) willStartWiimoteConnections;
 - (void) WiiRemoteDiscovered:(WiiRemote*)wiimote;

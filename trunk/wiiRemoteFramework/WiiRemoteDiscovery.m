@@ -12,7 +12,8 @@
 
 @implementation WiiRemoteDiscovery
 
-- (id) init {
+- (id) init
+{
 	self = [super init];
 	
 	if (self != nil) {
@@ -27,10 +28,9 @@
 	return self;
 }
 
-+ (WiiRemoteDiscovery*) discoveryWithDelegate:(id<WiiRemoteDiscoveryDelegate>) delegate
++ (WiiRemoteDiscovery*) discoveryWithDelegate:(id) delegate
 {
-	// cam: when using this convention, we must autorelease the returned object
-  WiiRemoteDiscovery *result = [[[WiiRemoteDiscovery alloc] init] autorelease];
+	WiiRemoteDiscovery *result =[[[WiiRemoteDiscovery alloc] init] autorelease];
   [result setDelegate:delegate];
 	return result;
 }
@@ -46,13 +46,12 @@
 	return _delegate;
 }
 
-- (void) setDelegate:(id<WiiRemoteDiscoveryDelegate>) delegate
+- (void) setDelegate:(id) delegate
 {
 	// only retain a shallow reference to the delegate, could be problematic if the delegate went to be
 	// dealloced, but in the most general case, the delegate 'owns' the WiiRemoteDiscovery
 	_delegate = delegate;
 }
-
 
 - (IOReturn) start
 {

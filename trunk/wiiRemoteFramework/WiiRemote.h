@@ -4,7 +4,7 @@
 //
 //  Created by KIMURA Hiroaki on 06/12/04.
 //  Copyright 2006 KIMURA Hiroaki. All rights reserved.
-//  Modifications for Wii Balance Beam by David Phillip Oster 11/23/08
+//
 
 #import "Mii.h"
 
@@ -29,7 +29,7 @@ extern NSString * WiiRemoteExpansionPortChangedNotification;
 typedef unsigned char WiiIRModeType;
 enum {
 	kWiiIRModeBasic			= 0x01,
-	kWiiIRModeExtended	= 0x03,
+	kWiiIRModeExtended		= 0x03,
 	kWiiIRModeFull			= 0x05
 };
 
@@ -45,17 +45,13 @@ typedef struct {
 	unsigned short x_min, x_max, x_center, y_min, y_max, y_center; 
 } WiiJoyStickCalibData;
 
-typedef struct WiiQuad {
-	unsigned short topRight, bottomRight, topLeft, bottomLeft;
-} WiiQuad;
-
-// The weight on each sensor found by interpolating between or extrapolating
-// beyond the appropriate pair of calibration values.
-// Total weight is the sum of the weight of the 4 sensors.
 typedef struct {
-	WiiQuad quad[3];	// 0kg=[0], 17kg=[1], 34kg=[2]
-	BOOL isInitialized;
-} WiiBalanceBeamCalibData;
+	float tr, br, tl, bl;
+} WiiBalanceBoardGrid;
+
+typedef struct {
+	WiiBalanceBoardGrid kg0, kg17, kg34;
+} WiiBalanceBoardCalibData;
 
 typedef enum {
 	WiiRemoteAButton,
@@ -94,10 +90,11 @@ unsigned char mii_data_buf[WIIMOTE_MII_DATA_BYTES_PER_SLOT + 16];
 unsigned short mii_data_offset;
 
 typedef enum {
+	WiiExpUknown,
 	WiiExpNotAttached,
 	WiiNunchuk,
 	WiiClassicController,
-	WiiBalanceBeam,
+	WiiBalanceBoard
 }  WiiExpansionPortType;
 
 typedef enum {
@@ -105,14 +102,16 @@ typedef enum {
 	WiiNunchukAccelerationSensor
 } WiiAccelerationSensorType;
 
+typedef enum {
+	WiiBalanceBoardPressureSensor
+} WiiPressureSensorType;
+
 
 typedef enum {
 	WiiNunchukJoyStick					= 0,
 	WiiClassicControllerLeftJoyStick	= 1,
 	WiiClassicControllerRightJoyStick	= 2
 } WiiJoyStickType;
-
-@protocol WiiRemoteDelegate;
 
 @interface WiiRemote : NSObject
 {
@@ -123,7 +122,7 @@ typedef enum {
 	BOOL _opened;
 	BOOL _shouldUpdateReportMode;
 	BOOL _shouldReadExpansionCalibration;
-	BOOL _shouldReadExpansionCalibrationHigh;
+	BOOL _shouldSetInitialConfiguration;
 	BOOL _isMotionSensorEnabled;
 	BOOL _isIRSensorEnabled;
 	BOOL _isVibrationEnabled;
@@ -133,22 +132,21 @@ typedef enum {
 	BOOL _isLED2Illuminated;
 	BOOL _isLED3Illuminated;
 	BOOL _isLED4Illuminated;
-	BOOL _isBalanceBeam;
-  
+
 	IOBluetoothDevice * _wiiDevice;
 	IOBluetoothL2CAPChannel * _ichan;
 	IOBluetoothL2CAPChannel * _cchan;
-  
-	id<WiiRemoteDelegate> _delegate;
-  
+
+	id _delegate;
+
 	float _lowZ, _lowX;
 	int orientation;
 	int leftPoint; // is point 0 or 1 on the left. -1 when not tracking.
-  
+
 	WiiExpansionPortType expType;
 	WiiAccCalibData wiiCalibData, nunchukCalibData;
 	WiiJoyStickCalibData nunchukJoyStickCalibData;
-	WiiBalanceBeamCalibData balanceBeamCalibData;
+	WiiBalanceBoardCalibData balanceBoardCalibData;
 	WiiIRModeType wiiIRMode;
 	IRData	irData[4];
 	double _batteryLevel;
@@ -156,7 +154,7 @@ typedef enum {
 	
 	NSTimer * statusTimer;
 	IOBluetoothUserNotification * disconnectNotification;
-  
+
 	BOOL buttonState[28];
 	
 	//wiimote
@@ -181,12 +179,16 @@ typedef enum {
 	unsigned short cStickY2;
 	unsigned short cAnalogL;
 	unsigned short cAnalogR;
-
-	// balance beam
-	WiiQuad bb;
+	
+	/* balance board raw values */
+	WiiBalanceBoardGrid bPressure;
+	
+	/* balance board encoded values */
+	WiiBalanceBoardGrid bKg;
+	
 } 
 - (NSString*) address;
-- (void) setDelegate:(id<WiiRemoteDelegate>) delegate;
+- (void) setDelegate:(id) delegate;
 - (double) batteryLevel;
 
 - (WiiExpansionPortType) expansionPortType;
@@ -205,6 +207,8 @@ typedef enum {
 
 - (void) updateReportMode;
 - (IOReturn) doUpdateReportMode;
+
+- (void) setInitialConfiguration;
 - (void) setIRSensorEnabled:(BOOL) enabled;
 - (void) setForceFeedbackEnabled:(BOOL) enabled;
 - (void) setMotionSensorEnabled:(BOOL) enabled;
@@ -219,42 +223,22 @@ typedef enum {
 
 @end
 
-@protocol WiiRemoteDelegate<NSObject>
-
-- (void) buttonChanged:(WiiButtonType) type isPressed:(BOOL) isPressed;
-
-- (void) wiiRemoteDisconnected:(IOBluetoothDevice*) device;
-
-@optional
-
-- (void) analogButtonChanged:(WiiButtonType) type amount:(unsigned short) press;
-
-- (void) accelerationChanged:(WiiAccelerationSensorType) type accX:(unsigned short) accX accY:(unsigned short) accY accZ:(unsigned short) accZ;
-
-- (void) batteryLevelChanged:(double) level;
-
-- (void) gotMiiData: (Mii*) mii_data_buf at: (int) slot;
-
-- (void) irPointMovedX:(float) px Y:(float) py;
-
-- (void) joyStickChanged:(WiiJoyStickType) type tiltX:(unsigned short) tiltX tiltY:(unsigned short) tiltY;
-
-// raw values from the Balance Beam
-- (void) balanceBeamChangedTopRight:(int)topRight
-                        bottomRight:(int)bottomRight
-                            topLeft:(int)topLeft
-                         bottomLeft:(int)bottomLeft;
-
-// cooked values from the Balance Beam
-- (void) balanceBeamKilogramsChangedTopRight:(float)topRight
-                                 bottomRight:(float)bottomRight
-                                     topLeft:(float)topLeft
-                                  bottomLeft:(float)bottomLeft;
-
-- (void) rawIRData: (IRData[4]) irData;
+@interface NSObject (WiiRemoteDelegate)
 
 - (void) wiimoteWillSendData;
-
 - (void) wiimoteDidSendData;
 
+- (void) irPointMovedX:(float) px Y:(float) py;
+- (void) rawIRData: (IRData[4]) irData;
+- (void) buttonChanged:(WiiButtonType) type isPressed:(BOOL) isPressed;
+- (void) accelerationChanged:(WiiAccelerationSensorType) type accX:(unsigned short) accX accY:(unsigned short) accY accZ:(unsigned short) accZ;
+- (void) joyStickChanged:(WiiJoyStickType) type tiltX:(unsigned short) tiltX tiltY:(unsigned short) tiltY;
+- (void) analogButtonChanged:(WiiButtonType) type amount:(unsigned short) press;
+- (void) pressureChanged:(WiiPressureSensorType) type pressureTR:(float) bPressureTR pressureBR:(float) bPressureBR 
+			  pressureTL:(float) bPressureTL pressureBL:(float) bPressureBL;
+- (void) batteryLevelChanged:(double) level;
+- (void) wiiRemoteDisconnected:(IOBluetoothDevice*) device;
+- (void) gotMiiData: (Mii*) mii_data_buf at: (int) slot;
+- (void) rawPressureChanged:(WiiBalanceBoardGrid) bbData;
+- (void) allPressureChanged:(WiiPressureSensorType) type bbData:(WiiBalanceBoardGrid) bbData bbDataInKg:(WiiBalanceBoardGrid) bbDataInKg;
 @end

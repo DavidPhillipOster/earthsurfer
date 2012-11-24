@@ -1,5 +1,7 @@
 // History.txt
 
+Note that wiiRemote is BSD license.
+
 See http://code.google.com/p/earthsurfer for more information.
 
 First Release. Version 0.5.0
@@ -16,6 +18,12 @@ May 6, 2009
 - T.U.'s http://www.corp.google.com/~tulrich/surfer/
   - grabbed T.U.'s latest. merged, so we have buildings now.
 - my attempt to get the program to run reasonably when bluetooth was off caused it to not connect at all when bluetooth is on. Fixed in :0.8.0
+
+Nov 23, 2012
+- revised for 10.8. The fullscreen mode toogle is usable, but funky. Can I simply move a view from one window to another in 10.8?
+- Modified project to git.
+- Checked the DarwiinRemote site: like mine, the driver connects but never sends any data in 10.8.
+
 
 
 TODO:
