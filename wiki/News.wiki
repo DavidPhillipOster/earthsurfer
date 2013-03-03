@@ -1,4 +1,8 @@
-=News - last update Jan 14, 2009 =
+=News - last update March 2, 2013 =
+
+==Version 1.0.2==
+Version 1.0.2 released March 2, 2013 - 
+OS X 10.8 (Mountain Lion) compatibility. The old version is still available in case you need it, since I haven't tested the new version of EarthSurfer on old versions of OS X.
 
 ==Version 0.6.0==
 Version 0.6.0 released Jan 14, 2009 - 

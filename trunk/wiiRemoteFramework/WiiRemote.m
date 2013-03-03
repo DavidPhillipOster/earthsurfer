@@ -1478,9 +1478,9 @@ typedef enum {
 {
 	unsigned char cmd[] = {0x15, 0x00};
 	IOReturn ret = [self sendCommand:cmd length:2];
-	if (ret != kIOReturnSuccess)
+	if (ret != kIOReturnSuccess) {
 		NSLogDebug (@"getCurrentStatus: failed.");
-	
+	}
 	return ret;
 }
 
